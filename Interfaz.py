@@ -95,13 +95,13 @@ class Gui():
         print('run scanner ')
 
         if self.type_file == '.css':
-            print('css scanner executing')
+            print('css scanner en proceso')
         elif self.type_file == '.js':
-            print('js scanner executing')
+            print('js scanner en proceso')
         elif self.type_file == '.html':
-            print('html scanner executing')
+            print('html scanner en proceso')
         else:
-            print('awatafaka')
+            print('ninguno')
 
 
 def main():
