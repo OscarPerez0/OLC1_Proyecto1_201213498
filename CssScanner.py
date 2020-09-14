@@ -1,5 +1,5 @@
-from Compi.Token import Token
-from Compi.Error import Error
+from Token import Token
+from Error import Error
 from io import StringIO
 
 
