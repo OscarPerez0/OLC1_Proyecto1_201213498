@@ -1,6 +1,8 @@
-from Compi.Token import Token
-from Compi.Error import Error
+from Token import Token
+from Error import Error
 from io import StringIO
+
+
 class JsScanner:
     def __init__(self, data, t):
         self.tktext = t
