@@ -1,5 +1,5 @@
-from Compi.Error import Error
-from Compi.Token import Token
+from Error import Error
+from Token import Token
 
 class AritmeticScanner:
 
