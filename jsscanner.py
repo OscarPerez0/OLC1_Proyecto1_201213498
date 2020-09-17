@@ -6,11 +6,29 @@ from io import StringIO
 class JsScanner:
     def __init__(self, data, t):
         self.tktext = t
-        self.text = data.lower() + ' '
+        self.text = data + ' '
         self.tokens = []
         self.errores = []
         self.out_text = StringIO()
         self.index = -1
+        self.er = {}
+        self.out_er = {}
+
+        self.expresiones_regulares()
+
+    def expresiones_regulares(self):
+        self.er['id'] = '.L*||LN_'
+        self.er['entero'] = '+N'
+        self.er['decimal'] = '.+N?.p+N' # p representa el . como lexema no como simbolo
+        self.er['cadena'] = '.."*C"'
+        self.er['cadena_s'] = "..'*C'"
+        self.er['comentario_m'] = '..../@*C@/' # @ representa el * como lexema no como simbolo
+        self.er['comentario_s'] = '..//*C'
+
+    def add_er(self, er):
+        if not er in self.out_er:
+            self.out_er[er] = self.er[er]
+
 
     def scanner(self):
         estado = 0
@@ -21,6 +39,9 @@ class JsScanner:
         length = len(self.text)
         index = 0
         found_error = False
+        index_auxiliar = 0
+        aux_text = self.text
+        self.text = self.text.lower()
 
 
 
@@ -75,7 +96,9 @@ class JsScanner:
                 else:
                     #aceptacion para los identificadores y palabras reservadas
                     estado = 0
+                    index -= 1
                     self.tokens.append(Token(self.reservadas(lexema), lexema, linea, columna))
+                    self.add_er('id')
 
                     # self.tktext.tag_add("test", start_i, columna)
                     # self.tktext.tag_config("test", background="red")
@@ -101,6 +124,7 @@ class JsScanner:
                         self.errores.append(Error(lexema, linea, columna, 'Las cadenas no aceptan saltos de linea', 'Error Lexico'))
                         found_error = True
                         estado = 0
+                        self.out_text += aux_text[index]
                         continue
 
                     lexema += self.text[index]
@@ -108,6 +132,7 @@ class JsScanner:
                 else:
                     lexema += self.text[index]
                     self.tokens.append(Token('tk_cadena', lexema, linea, columna))
+                    self.add_er('cadena')
                     estado = 0
 
             elif estado == 4:
@@ -116,6 +141,7 @@ class JsScanner:
                         self.errores.append(Error(lexema, linea, columna, 'Las cadenas no aceptan saltos de linea ', 'Error Lexico'))
                         found_error = True
                         estado = 0
+                        self.out_text += aux_text[index]
                         continue
 
                     lexema += self.text[index]
@@ -123,6 +149,7 @@ class JsScanner:
                 else:
                     lexema += self.text[index]
                     self.tokens.append(Token('tk_cadena_s', lexema, linea, columna))
+                    self.add_er('cadena_s')
                     estado = 0
 
             elif estado == 5:
@@ -136,9 +163,9 @@ class JsScanner:
                 else:
                     #aceptacion numeros
                     estado = 0
-                    # index -= 1
+                    index -= 1
                     self.tokens.append(Token('tk_entero', lexema, linea, columna))
-                    continue
+                    self.add_er('entero')
 
             elif estado == 6:
                 if ord(lexema[0]) == 61:
@@ -225,9 +252,9 @@ class JsScanner:
                     estado = 0
                     # index -= 1
                     self.tokens.append(Token('tk_comentario_s', lexema,linea, columna))
+                    self.add_er('comentario_s')
                     linea += 1
                     columna = 1
-                    continue
 
             elif estado == 8:
                 if ord(self.text[index]) == 42:
@@ -248,7 +275,7 @@ class JsScanner:
 
                 else:
                     # print(self.text[index])
-                    index -= 1
+                    lexema += self.text[index]
                     estado = 8
 
             elif estado == 10:
@@ -265,7 +292,8 @@ class JsScanner:
                 #estado de aceptacion para caracteres
                 # index -= 1
                 estado = 0
-                self.tokens.append(Token('tk_char', lexema, linea, columna))
+                self.tokens.append(Token('tk_cadena_s', lexema, linea, columna))
+                self.add_er('cadena_s')
                 continue
 
             elif estado == 12:
@@ -287,22 +315,29 @@ class JsScanner:
                     estado = 0
                     # index -= 1
                     self.tokens.append(Token('tk_decimal', lexema, linea, columna))
+                    self.add_er('decimal')
                     continue
 
             elif estado == 14:
                 index -= 1
                 estado = 0
                 self.tokens.append(Token('tk_comentario_m', lexema, linea, columna))
+                self.add_er('comentario_m')
 
 
-            if not found_error:
-                self.out_text.write(self.text[index])
+            if not found_error and index_auxiliar == index:
+                self.out_text.write(aux_text[index_auxiliar])
+            else:
+                index_auxiliar = index
 
 
 
             # print(self.out_text.getvalue())
 
             index += 1
+
+            if index_auxiliar + 1 < len(self.text):
+                index_auxiliar += 1
 
     def find_path(self):
         if len(self.tokens) == 0:
@@ -327,6 +362,9 @@ class JsScanner:
                     else:
                         if temp == 'pathl':
                             estado = 1
+                            index -= 1
+                            # if ord(comment[index]) == 32:
+
 
                         temp = ''
 
@@ -352,8 +390,8 @@ class JsScanner:
                     if ord(comment[index]) == 47 or comment[index].isdigit() or comment[index].isalpha():
                         temp += comment[index]
                     else:
-                        print(temp)
-
+                        if ord(temp[len(temp) -1]) != 47:
+                            temp += '/'
                         return temp
 
                 index += 1

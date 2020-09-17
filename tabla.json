@@ -1,0 +1,190 @@
+[
+	{
+		"yname": "s",
+		"xtoken": "tk_(",
+		"produccion": ["e", "sp"]
+	},
+	{
+		"yname": "s",
+		"xtoken": "tk_entero",
+		"produccion": ["e", "sp"]
+	},
+	{
+		"yname": "s",
+		"xtoken": "tk_decimal",
+		"produccion": ["e", "sp"]
+	},
+	{
+		"yname": "s",
+		"xtoken": "tk_id",
+		"produccion": ["e", "sp"]
+	},
+
+	{
+		"yname": "sp",
+		"xtoken": "tk_del",
+		"produccion": ["tk_del", "s"]
+	},
+	{
+		"yname": "sp",
+		"xtoken": "$",
+		"produccion": []
+	},
+
+	{
+		"yname": "e",
+		"xtoken": "tk_(",
+		"produccion": ["t", "ep"]
+	},
+	{
+		"yname": "e",
+		"xtoken": "tk_entero",
+		"produccion": ["t", "ep"]
+	},
+	{
+		"yname": "e",
+		"xtoken": "tk_decimal",
+		"produccion": ["t", "ep"]
+	},
+	{
+		"yname": "e",
+		"xtoken": "tk_id",
+		"produccion": ["t", "ep"]
+	},
+	{
+		"yname": "e",
+		"xtoken": "tk_)",
+		"produccion": []
+	},
+
+	{
+		"yname": "ep",
+		"xtoken": "tk_+",
+		"produccion": ["tk_+", "t", "ep"]
+	},
+	{
+		"yname": "ep",
+		"xtoken": "tk_-",
+		"produccion": ["tk_-", "t", "ep"]
+	},
+	{
+		"yname": "ep",
+		"xtoken": "tk_del",
+		"produccion": []
+	},
+	{
+		"yname": "ep",
+		"xtoken": "tk_)",
+		"produccion": []
+	},
+	{
+		"yname": "ep",
+		"xtoken": "$",
+		"produccion": []
+	},
+
+
+	{
+		"yname": "t",
+		"xtoken": "tk_(",
+		"produccion": ["f", "tp"]
+	},
+	{
+		"yname": "t",
+		"xtoken": "tk_entero",
+		"produccion": ["f", "tp"]
+	},
+	{
+		"yname": "t",
+		"xtoken": "tk_decimal",
+		"produccion": ["f", "tp"]
+	},
+	{
+		"yname": "t",
+		"xtoken": "tk_id",
+		"produccion": ["f", "tp"]
+	},
+
+	{
+		"yname": "tp",
+		"xtoken": "tk_*",
+		"produccion": ["tk_*", "f", "tp"]
+	},
+	{
+		"yname": "tp",
+		"xtoken": "tk_/",
+		"produccion": ["tk_/", "f", "tp"]
+	},
+	{
+		"yname": "tp",
+		"xtoken": "tk_+",
+		"produccion": []
+	},
+	{
+		"yname": "tp",
+		"xtoken": "tk_-",
+		"produccion": []
+	},
+	{
+		"yname": "tp",
+		"xtoken": "tk_del",
+		"produccion": []
+	},
+	{
+		"yname": "tp",
+		"xtoken": "tk_)",
+		"produccion": []
+	},
+	{
+		"yname": "tp",
+		"xtoken": "$",
+		"produccion": []
+	},
+
+	{
+		"yname": "f",
+		"xtoken": "tk_(",
+		"produccion": ["tk_(", "er", "tk_)"]
+	},
+	{
+		"yname": "f",
+		"xtoken": "tk_entero",
+		"produccion": ["tk_entero"]
+	},
+	{
+		"yname": "f",
+		"xtoken": "tk_decimal",
+		"produccion": ["tk_decimal"]
+	},
+	{
+		"yname": "f",
+		"xtoken": "tk_id",
+		"produccion": ["tk_id"]
+	},
+
+	{
+		"yname": "er",
+		"xtoken": "tk_(",
+		"produccion": ["e"]
+	},
+	{
+		"yname": "er",
+		"xtoken": "tk_entero",
+		"produccion": ["e"]
+	},
+	{
+		"yname": "er",
+		"xtoken": "tk_decimal",
+		"produccion": ["e"]
+	},
+	{
+		"yname": "er",
+		"xtoken": "tk_id",
+		"produccion": ["e"]
+	},
+	{
+		"yname": "er",
+		"xtoken": "tk_)",
+		"produccion": []
+	}
+]

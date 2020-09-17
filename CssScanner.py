@@ -8,7 +8,7 @@ class CssScanner:
     def __init__(self, texto, bitacora):
         self.tokens = []
         self.errores = []
-        self.text = texto.lower() + ' '
+        self.text = texto + ' '
         self.bitacora = bitacora
         self.out_text = StringIO()
         self.index = -1
@@ -19,6 +19,8 @@ class CssScanner:
         linea = 1
         columna = 1
         found_error = False
+        aux_text = self.text
+        self.text = self.text.lower()
 
         index = 0
         index_auxiliar = 0
@@ -208,7 +210,7 @@ class CssScanner:
 
 
             if not found_error and index_auxiliar == index:
-                self.out_text.write(self.text[index])
+                self.out_text.write(aux_text[index])
             else:
                 index_auxiliar = index
 
@@ -241,6 +243,7 @@ class CssScanner:
                     else:
                         if temp == 'pathl':
                             estado = 1
+                            index -= 1
 
                         temp = ''
 
@@ -266,7 +269,9 @@ class CssScanner:
                     if ord(comment[index]) == 47 or comment[index].isdigit() or comment[index].isalpha():
                         temp += comment[index]
                     else:
-                        print(temp)
+                        if ord(temp[len(temp) -1 ]) != 47:
+                            temp += '/'
+                        return temp
 
                         return temp
 

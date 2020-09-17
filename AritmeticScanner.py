@@ -4,9 +4,10 @@ from Token import Token
 class AritmeticScanner:
 
     def __init__(self, data):
-        self.text = data + ' '
+        self.text = data[:-1] + ' '
         self.errores = []
         self.tokens = []
+        self.lists = []
 
 
     def scanner(self):
@@ -17,6 +18,7 @@ class AritmeticScanner:
 
         i = 0
 
+        temp = len(self.text)
         while i < len(self.text):
             if estado == 0:
                 lexema = ''
@@ -41,6 +43,7 @@ class AritmeticScanner:
                     columna += 1
 
                     if ord(self.text[i]) == 10:
+                        self.tokens.append(Token('tk_del', self.text[i], linea, columna))
                         linea += 1
                         columna = 1
 
@@ -70,7 +73,7 @@ class AritmeticScanner:
                     #aceptacion para enteros
                     estado = 0
                     i -= 1
-                    self.tokens.append(Token('tk_numero', lexema, linea, columna))
+                    self.tokens.append(Token('tk_entero', lexema, linea, columna))
 
             elif estado == 3:
                 estado = 0
@@ -84,7 +87,7 @@ class AritmeticScanner:
                 else:
                     #aceptacion para decimales
                     estado = 0
-                    self.tokens.append(Token('tk_numero', lexema, linea, columna))
+                    self.tokens.append(Token('tk_decimal', lexema, linea, columna))
 
             elif estado == 5:
                 if self.text[i].isdigit():
@@ -99,6 +102,22 @@ class AritmeticScanner:
             i += 1
 
 
+        # self.tokens.append(Token('$', '$', 0, 0))
+
+
+    def generate_lists(self):
+        l_temp = []
+        for token in self.tokens:
+            if token.token != 'tk_del':
+                l_temp.append(token)
+            else:
+                l_temp.append(Token('$', '$', 0, 0))
+                self.lists.append(l_temp.copy())
+                l_temp.clear()
+                continue
+
+        l_temp.append(Token('$', '$', 0, 0))
+        self.lists.append(l_temp.copy())
 
     def simbolos(self, simbol):
         s = {

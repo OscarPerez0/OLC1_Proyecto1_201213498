@@ -7,7 +7,7 @@ class HtmlScanner:
     def __init__(self, texto):
         self.tokens = []
         self.errores = []
-        self.text = texto.lower() + ' '
+        self.text = texto + ' '
         self.out_text = ''
         self.index = -1
 
@@ -20,6 +20,9 @@ class HtmlScanner:
         fake_index = 0
         tag = False
         found_error = False
+        aux_text = self.text
+        self.text = self.text.lower()
+
 
         while index < len(self.text):
             if estado == 0:
@@ -179,7 +182,7 @@ class HtmlScanner:
                 self.tokens.append(Token('tk_comentario', lexema, linea, columna))
 
             if not found_error and fake_index == index:
-                self.out_text += self.text[index]
+                self.out_text += aux_text[index]
             else:
                 fake_index = index
 
@@ -241,9 +244,7 @@ class HtmlScanner:
                     if ord(comment[index]) == 47 or comment[index].isdigit() or comment[index].isalpha():
                         temp += comment[index]
                     else:
-                        print(temp)
-
-                        if temp[len(temp) - 1] != '/':
+                        if ord(temp[len(temp) -1 ]) != '/':
                             temp += '/'
 
                         return temp

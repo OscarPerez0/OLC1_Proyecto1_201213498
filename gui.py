@@ -7,6 +7,9 @@ from HtmlScanner import HtmlScanner
 from Reporte import Reporte
 from AritmeticScanner import AritmeticScanner
 from AritmeticParser import AritmeticParser
+from Arbol import Arbol
+from Grafo import Grafo
+
 
 import platform
 
@@ -18,11 +21,16 @@ class Gui():
         self.log = None
         self.editor = None
         self.type_file = None
+        self.scanner = None
+        self.parser = None
+        self.expresiones = []
         self.current_file_name = ''
         self.currentPath = ""
         self.create_widgets()
 
-        print(platform.system())
+        #necesarias para invocar los distintos analizadores
+
+
 
     def create_widgets(self):
         self.create_menubar()
@@ -33,7 +41,7 @@ class Gui():
         self.editor.pack(fill = tk.X, pady = 5)
 
 
-        self.log = tk.Text(self.root, height = 10, bg = "black", fg = "white")
+        self.log = tk.Text(self.root, height = 15, bg = "black", fg = "white")
         self.log.pack(fill = tk.X, pady = 5)
 
     def create_menubar(self):
@@ -42,19 +50,26 @@ class Gui():
         tools = tk.Menu(menubar, tearoff=0)
         report = tk.Menu(menubar, tearoff=0)
 
-        filemenu.add_command(label="Nuevo")
-        filemenu.add_command(label="Abrir", command = self.onOpen)
-        filemenu.add_command(label = "Abrir Archivo rmt", command = self.onOpenRmt) #escribir la funcion para este comando
-        filemenu.add_command(label="Guardar", command = self.save)
-        filemenu.add_command(label="Guardar Como", command = self.saveAs)
-        filemenu.add_command(label="Salir", command = self.root.quit)
+        filemenu.add_command(label="Nuevo", command=self.nuevo())
+        filemenu.add_command(label="Abrir", command=self.onOpen)
+        filemenu.add_command(label = "Abrir Archivo rmt", command=self.onOpenRmt) #escribir la funcion para este comando
+        filemenu.add_command(label="Guardar", command=self.save)
+        filemenu.add_command(label="Guardar Como", command=self.saveAs)
+        filemenu.add_command(label="Salir", command=self.root.quit)
 
-        tools.add_command(label="Analizar Archivo", command = self.run)
-        tools.add_command(label = "Aanlizar Rmt", command = self.runRmt) #add command
+        tools.add_command(label="Analizar Archivo", command=self.run)
+        tools.add_command(label = "Aanlizar Rmt", command=self.runRmt) #add command
+
+        report.add_command(label='Reporte de Tablas', command=self.reporte_tablas)
+        report.add_command(label='Reporte Rmt', command=self.reporte_expresiones)
+        report.add_command(label='Reporte Arbol', command=self.generar_reporte_arbol)
+        report.add_command(label='Reporte Automata', command=self.generar_reporte_grafo)
 
         menubar.add_cascade(label="Archivo", menu=filemenu)
         menubar.add_cascade(label="Herramientas", menu=tools)
         menubar.add_cascade(label="Reportes", menu=report)
+
+
 
         self.root.config(menu=menubar)
 
@@ -117,85 +132,97 @@ class Gui():
         pointer = open(path, 'w')
         pointer.write(content)
 
+    def nuevo(self):
+        self.scanner = None
+        self.parser = None
+        self.expresiones.clear()
+
+    def reporte_tablas(self):
+        if self.scanner != None:
+            reporte = Reporte(self.scanner.tokens, self.scanner.errores)
+            reporte.generarReporteTabla('reporte_tokens.html', True)
+            reporte.generarReporteTabla('reporte_errores.html', False)
+        else:
+            print('no se puede generar reportes. Antes se debe analizar algun archivo')
+
+    def reporte_expresiones(self):
+        if self.scanner != None:
+            if isinstance(self.scanner, AritmeticScanner):
+                reporte = Reporte(self.scanner.tokens, self.scanner.errores)
+                reporte.generar_reporte_parser('reporte_parser.html', self.expresiones)
+
+    def generar_reporte_grafo(self):
+        if self.scanner != None:
+
+            if isinstance(self.scanner, JsScanner):
+                grafo = Grafo(self.scanner.out_er)
+                grafo.generar_grafo()
+            else:
+                print('El diagrama de Grafo unicamente se genera para el archivo Js')
+
+
+    def generar_reporte_arbol(self):
+        if self.scanner != None:
+            if isinstance(self.scanner, JsScanner):
+                arbol = Arbol(self.scanner.out_er)
+                arbol.generar_grafo()
+            else:
+                print('El diagrama de Arbol unicamente se genera para el archivo Js')
+
     def runRmt(self):
         texto = self.editor.get('1.0', 'end-1c')
         if not texto:
             print('no hay nada que analizar papirrin')
-
-
         else:
-            rmt = AritmeticScanner(texto)
-            rmt.scanner()
-            reporte = Reporte(rmt.tokens, rmt.errores)
-            if not rmt.errores:
-                print('archivo Rmt analizado con exito paps')
-                reporte.generarReporteTabla('aritmetic', True)
-                parser = AritmeticParse(rmt.tokens)
-                parser.parser()
+            self.scanner = AritmeticScanner(texto)
+            self.scanner.scanner()
+            self.scanner.generate_lists()
 
-
+            if not self.scanner.errores:
+                for list_tks in self.scanner.lists:
+                    self.parser = AritmeticParser(list_tks)
+                    self.parser.parse()
+                    self.expresiones.append(self.parser.get_out())
             else:
-                print('se han encontrado errores')
-                reporte.generarReporteTabla('aritmetic', False)
+                print('se han encontrado errores lexicos en el archivo Rmt')
 
     def run(self):
-        print('run scanner ')
-
         if self.type_file == None:
             print('no se puede tomar una decision sobre que analizador ejecutar. Guarde el archivo o eliga un archivo valido')
             return
 
-
         if self.type_file == '.css':
             print('css scanner executing')
-            css = CssScanner(self.editor.get('1.0', 'end-1c'), self.log)
-            css.scanner()
-            path = css.find_path()
+            self.scanner = CssScanner(self.editor.get('1.0', 'end-1c'), self.log)
+            self.scanner.scanner()
+            path = self.scanner.find_path()
 
             if path != None:
                 self.create_dirs(path)
-                self.writeFile(path + self.current_file_name, css.out_text.getvalue())
-
-            reporte = Reporte(css.tokens, css.errores)
-
-            #Se generan los reportes
-            reporte.generarReporteTabla('tokensCss', True)
-            reporte.generarReporteTabla('ErroresCss', False)
+                self.writeFile(path + self.current_file_name, self.scanner.out_text.getvalue())
 
         elif self.type_file == '.js':
             print('js scanner executing')
-            js = JsScanner(self.editor.get('1.0', 'end-1c'), self.editor)
-            js.scanner()
-            path = js.find_path()
+            self.scanner = JsScanner(self.editor.get('1.0', 'end-1c'), self.editor)
+            self.scanner.scanner()
+            path = self.scanner.find_path()
 
             if path != None:
                 self.create_dirs(path)
-                self.writeFile(path + self.current_file_name, js.out_text.getvalue())
-
-
-            reporte = Reporte(js.tokens, js.errores)
-
-            reporte.generarReporteTabla('TokensJs', True)
-            reporte.generarReporteTabla('ErroresJs', False)
+                self.writeFile(path + self.current_file_name, self.scanner.out_text.getvalue())
 
         elif self.type_file == '.html':
             print('html scanner executing')
-            html = HtmlScanner(self.editor.get('1.0', 'end-1c'))
-            html.scanner()
-            path = html.find_path()
+            self.scanner = HtmlScanner(self.editor.get('1.0', 'end-1c'))
+            self.scanner.scanner()
+            path = self.scanner.find_path()
 
             if path != None:
                 self.create_dirs(path)
-                self.writeFile(path + self.current_file_name, html.out_text)
-
-
-            reporte = Reporte(html.tokens, html.errores)
-
-            reporte.generarReporteTabla('Tokenshtml', True)
-            reporte.generarReporteTabla('Erroreshtml', False)
+                self.writeFile(path + self.current_file_name, self.scanner.out_text)
 
         else:
-            print('awatafaka')
+            print('La extension del archivo leido no se reconoce')
 
     def create_dirs(self, path):
         if os.path.exists(path):
@@ -204,7 +231,6 @@ class Gui():
         try:
             original_umask =  os.umask(0)
             os.makedirs(path, mode = 0o777)
-            print('good ')
         except OSError:
             print('Create Directory Failed')
         finally:
